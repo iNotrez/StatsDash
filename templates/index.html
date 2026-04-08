@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StatsDash</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0d0d1a;
+      color: #e8e8e4;
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      padding: 32px;
+    }
+    header {
+      margin-bottom: 32px;
+    }
+    header h1 {
+      font-size: 28px;
+      color: #BB7CFF;
+      letter-spacing: 2px;
+    }
+    header p {
+      color: #666680;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: #1a1a2e;
+      border-radius: 10px;
+      padding: 24px;
+      border: 1px solid #2a2a4a;
+    }
+    .card-title {
+      font-size: 11px;
+      color: #666680;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .card-value {
+      font-size: 42px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .card-sub {
+      font-size: 13px;
+      color: #888899;
+    }
+    .bar-bg {
+      background: #0d0d1a;
+      border-radius: 4px;
+      height: 6px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+    .cpu  .card-value { color: #BB7CFF; }
+    .ram  .card-value { color: #4DD9E0; }
+    .disk .card-value { color: #75C87E; }
+    .net  .card-value { color: #60A4FF; font-size: 24px; }
+    .cpu  .bar-fill { background: #BB7CFF; }
+    .ram  .bar-fill { background: #4DD9E0; }
+    .disk .bar-fill { background: #75C87E; }
+    #status {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      font-size: 11px;
+      color: #444460;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>StatsDash 📊</h1>
+    <p id="updated">Loading...</p>
+  </header>
+  <div class="grid">
+    <div class="card cpu">
+      <div class="card-title">CPU</div>
+      <div class="card-value" id="cpu-val">—</div>
+      <div class="card-sub" id="cpu-sub">usage</div>
+      <div class="bar-bg"><div class="bar-fill" id="cpu-bar"
+        style="width:0%"></div></div>
+    </div>
+    <div class="card ram">
+      <div class="card-title">RAM</div>
+      <div class="card-value" id="ram-val">—</div>
+      <div class="card-sub" id="ram-sub"></div>
+      <div class="bar-bg"><div class="bar-fill" id="ram-bar"
+        style="width:0%"></div></div>
+    </div>
+    <div class="card disk">
+      <div class="card-title">DISK</div>
+      <div class="card-value" id="disk-val">—</div>
+      <div class="card-sub" id="disk-sub"></div>
+      <div class="bar-bg"><div class="bar-fill" id="disk-bar"
+        style="width:0%"></div></div>
+    </div>
+    <div class="card net">
+      <div class="card-title">NETWORK</div>
+      <div class="card-value" id="net-recv">—</div>
+      <div class="card-sub" id="net-sent"></div>
+    </div>
+  </div>
+  <div id="status">iNotrez / StatsDash</div>
+ 
+  <script>
+    async function refresh() {
+      try {
+        const r = await fetch('/stats');
+        const d = await r.json();
+        document.getElementById('cpu-val').textContent = d.cpu.label;
+        document.getElementById('cpu-bar').style.width = d.cpu.percent + '%';
+        document.getElementById('ram-val').textContent = d.ram.label;
+        document.getElementById('ram-sub').textContent =
+          d.ram.used + ' / ' + d.ram.total;
+        document.getElementById('ram-bar').style.width = d.ram.percent + '%';
+        document.getElementById('disk-val').textContent = d.disk.label;
+        document.getElementById('disk-sub').textContent =
+          d.disk.used + ' / ' + d.disk.total;
+        document.getElementById('disk-bar').style.width = d.disk.percent + '%';
+        document.getElementById('net-recv').textContent =
+          '↓ ' + d.net.recv;
+        document.getElementById('net-sent').textContent =
+          '↑ ' + d.net.sent;
+        document.getElementById('updated').textContent =
+          'Updated: ' + new Date().toLocaleTimeString();
+      } catch(e) {
+        document.getElementById('updated').textContent = 'Connection lost...';
+      }
+    }
+    refresh();
+    setInterval(refresh, 2000);
+  </script>
+</body>
+</html>
